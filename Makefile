@@ -27,7 +27,7 @@ run:
 	python main.py
 
 # ============================================================================
-# TARGETS DE LIMPEZA E TESTES
+# TARGETS DE LIMPEZA
 # ============================================================================
 clean:
 	@find . -type d -name __pycache__ -exec rm -rf {} +
@@ -35,5 +35,11 @@ clean:
 	@rm -rf .pytest_cache
 	@rm -rf .coverage
 	@echo "Arquivos temporários removidos!"
+
+# ============================================================================
+# TARGETS DE TESTE
+# ============================================================================
+test_env:
+	pytest tests/test_env.py
 
 .DEFAULT_GOAL := help
