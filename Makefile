@@ -9,6 +9,8 @@ help:
 	@echo "  make install    - Instalar dependências"
 	@echo "  make run        - Executar a aplicação"
 	@echo "  make clean      - Remover arquivos temporários"
+	@echo "  make test_env   - Executar testes da env"
+	@echo "  make test_db    - Executar testes do banco de dados"
 
 # ============================================================================
 # TARGETS DE AMBIENTE
@@ -41,5 +43,8 @@ clean:
 # ============================================================================
 test_env:
 	pytest tests/test_env.py
+
+test_db:
+    PYTHONPATH=. python3 scripts/test_db.py
 
 .DEFAULT_GOAL := help
