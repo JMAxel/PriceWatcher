@@ -1,18 +1,17 @@
 from searchers.amazon_searcher import AmazonSearcher
+from core.selenium_driver import DriverPool
 import sys
 
 
 if __name__ == "__main__":
-    # Verificar se foi passado um argumento
+    # Verificar argumento da linha de comando
     if len(sys.argv) > 1:
-        # Juntar todos os argumentos em uma única query
         query = " ".join(sys.argv[1:])
     else:
-        # Query padrão se nenhum argumento for passado
         query = "SSD Kingston NV2 1TB"
-    
+
     print(f"Buscando por: {query}\n")
-    
+
     searcher = AmazonSearcher()
     results = searcher.search(query)
 
@@ -20,5 +19,10 @@ if __name__ == "__main__":
         print("Nenhum produto encontrado!")
     else:
         for i, r in enumerate(results, start=1):
-            print(f"{i}. {r['name']} - R$ {r['price']:.2f}")
+            preco = (f"R$ {r['price']:.2f}" if r["price"]
+                     else "Preço indisponível")
+            print(f"{i}. {r['name']} - {preco}")
             print(f"   {r['url']}\n")
+
+    # Importante: Encerrar o driver somente aqui, após todas as buscas.
+    DriverPool.shutdown()

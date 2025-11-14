@@ -32,7 +32,7 @@ run:
 QUERY ?= SSD Kingston NV2 1TB
 
 search:
-	python -m scripts.find_products "$(QUERY)"
+	@python -m scripts.find_products "$(QUERY)"
 
 # ============================================================================
 # TARGETS DE LIMPEZA

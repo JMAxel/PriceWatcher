@@ -1,4 +1,4 @@
-from core.selenium_driver import get_driver
+from core.selenium_driver import DriverPool
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
@@ -13,6 +13,7 @@ class AmazonSearcher:
     ):
         self.base_url = base_url
         self.wait_time = wait_time
+        self.driver = DriverPool.get_driver()  # <<< agora vem do DriverPool
 
     def _extract_name_and_url(self, item):
         """Tenta extrair nome e URL com múltiplos seletores."""
@@ -29,22 +30,21 @@ class AmazonSearcher:
                 link = item.find_element(By.CSS_SELECTOR, selector)
                 url = link.get_attribute("href")
 
-                # Tentar pegar o nome de diferentes formas
+                # Tentar pegar nome com diferentes seletores
                 name = None
                 name_selectors = ["h2 span", "span.a-text-normal", "h2"]
 
                 for name_sel in name_selectors:
                     try:
                         name_elem = link.find_element(
-                            By.CSS_SELECTOR, name_sel
-                        )
+                            By.CSS_SELECTOR, name_sel)
                         name = name_elem.text.strip()
                         if name:
                             return name, url
                     except NoSuchElementException:
                         continue
 
-                # Se encontrou o link mas não o nome, tenta direto do link
+                # fallback caso o texto esteja direto na tag
                 name = link.text.strip()
                 if name:
                     return name, url
@@ -59,7 +59,7 @@ class AmazonSearcher:
         price_selectors = [
             (
                 "span.a-price[data-a-color='base'] span.a-offscreen",
-                "textContent",
+                "textContent"
             ),
             ("span.a-price span.a-offscreen", "text"),
             ("span.a-price-whole", "text"),
@@ -71,14 +71,13 @@ class AmazonSearcher:
                 price_elem = item.find_element(By.CSS_SELECTOR, selector)
 
                 if method == "textContent":
-                    price_text = (
-                        price_elem.get_attribute("textContent").strip()
-                    )
+                    price_text = price_elem.get_attribute(
+                        "textContent"
+                    ).strip()
                 else:
                     price_text = price_elem.text.strip()
 
                 if price_text:
-                    # Limpar e converter
                     price_clean = (
                         price_text.replace("R$", "")
                         .replace("\u00a0", "")
@@ -95,7 +94,7 @@ class AmazonSearcher:
 
     def search(self, query: str):
         print(f"Iniciando busca: {query}")
-        driver = get_driver(headless=True)
+        driver = self.driver     # <<< driver vem do DriverPool
         results = []
 
         try:
@@ -126,7 +125,6 @@ class AmazonSearcher:
             for idx, item in enumerate(items[:5], 1):
                 print(f"\nProcessando item {idx}")
                 try:
-                    # Extrair nome e URL
                     name, url = self._extract_name_and_url(item)
 
                     if not name or not url:
@@ -136,7 +134,6 @@ class AmazonSearcher:
                     print(f"  Nome: {name[:50]}...")
                     print(f"  URL: {url[:80]}...")
 
-                    # Extrair preço
                     price = self._extract_price(item)
 
                     if price is None:
@@ -161,4 +158,4 @@ class AmazonSearcher:
             return []
 
         finally:
-            driver.quit()
+            pass
